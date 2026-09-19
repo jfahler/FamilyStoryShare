@@ -1,0 +1,66 @@
+0 HEAD
+1 GEDC
+2 VERS 5.5.1
+1 CHAR UTF-8
+0 @I1@ INDI
+1 NAME Anna /Kowalski/
+1 SEX F
+1 BIRT
+2 DATE 4 MAR 1889
+2 PLAC Kraków, Poland
+3 MAP
+4 LATI N50.0647
+4 LONG E19.9450
+1 EMIG
+2 DATE 1907
+2 PLAC Kraków, Poland
+1 IMMI
+2 DATE 22 APR 1907
+2 PLAC Ellis Island, New York, USA
+3 MAP
+4 LATI N40.6995
+4 LONG W74.0396
+2 NOTE Arrived aged 18 with one trunk and an aunt's address in Chicago.
+1 RESI
+2 DATE 1915
+2 PLAC Chicago, Illinois, USA
+3 MAP
+4 LATI N41.8781
+4 LONG W87.6298
+1 OCCU Seamstress
+2 DATE 1920
+1 DEAT
+2 DATE 9 NOV 1968
+2 PLAC Chicago, Illinois, USA
+0 @I2@ INDI
+1 NAME Tomasz /Nowak/
+1 SEX M
+1 BIRT
+2 DATE 1885
+2 PLAC Warsaw, Poland
+1 DEAT
+2 DATE 1951
+2 PLAC Chicago, Illinois, USA
+0 @I3@ INDI
+1 NAME Helen /Nowak/
+1 SEX F
+1 BIRT
+2 DATE 2 JUN 1914
+2 PLAC Chicago, Illinois, USA
+1 DEAT
+2 DATE 2001
+2 PLAC Milwaukee, Wisconsin, USA
+0 @I4@ INDI
+1 NAME Sam /Nowak/
+1 SEX M
+1 BIRT
+2 DATE 1988
+2 PLAC Milwaukee, Wisconsin, USA
+0 @F1@ FAM
+1 HUSB @I2@
+1 WIFE @I1@
+1 CHIL @I3@
+1 MARR
+2 DATE 1911
+2 PLAC Chicago, Illinois, USA
+0 TRLR
