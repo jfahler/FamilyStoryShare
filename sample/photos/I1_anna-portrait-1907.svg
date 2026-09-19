@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+<rect width="400" height="500" fill="#E4D9C6"/>
+<circle cx="200" cy="190" r="70" fill="#B9A88C"/>
+<path d="M70 500c0-110 60-170 130-170s130 60 130 170z" fill="#B9A88C"/>
+<text x="200" y="470" text-anchor="middle" font-family="Georgia,serif" font-size="20" fill="#6B5D4E">[Fake portrait placeholder]</text>
+</svg>

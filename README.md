@@ -4,35 +4,73 @@ An open source tool to share family story information with a simple link and no 
 
 Turn a GEDCOM file (from Ancestry, FamilySearch, Gramps...) into a private, tap-through family story site. It builds plain static files: no login, no database, marked `noindex`, easy to host anywhere.
 
-Needs Python 3.9+. No packages required (only `anthropic` if you use `--ai`).
+Needs Python 3.9+. No packages are required. Optional: `Pillow` (shrinks photos and strips GPS/camera data) and `anthropic` (for `--ai`).
+
+## Curate a collection
+
+Instead of relying on outside sites, gather exactly what you want to share into one folder. Everything in it is bundled into the site.
+
+```
+my-family/
+  tree.ged                  optional GEDCOM export (Ancestry, FamilySearch, Gramps...)
+  collection.json           optional: title, credit, extra people, captions, privacy
+  photos/                   your family photos
+  documents/                letters, records (.pdf or .txt)
+  stories/I1.txt            your own words about person I1
+```
+
+**Attach a file to a person** by starting its name with their ID and `_` or `-`, for example `photos/I1_anna-portrait-1907.jpg`. The rest of the name becomes the caption. Files with no ID go into a shared "Photos and documents" page. You can also attach and caption files in `collection.json`.
+
+**`collection.json`** (all keys optional):
+
+```json
+{
+  "title": "The Kowalski-Nowak family",
+  "by": "Your name",
+  "people": [
+    {"id": "M1", "name": "Zofia Kowalski",
+     "events": [{"type": "BIRT", "date": "1892", "place": "Kraków, Poland"}]}
+  ],
+  "media": [
+    {"file": "photos/dinner.jpg", "caption": "Sunday dinner, 1952", "year": 1952, "people": ["I3"]},
+    {"file": "photos/private-one.jpg", "private": true}
+  ],
+  "stories": {"I1": "Text shown on Anna's chapter."},
+  "exclude": ["I9"]
+}
+```
+
+Event types: `BIRT`, `DEAT`, `MARR`, `IMMI`, `EMIG`, `RESI`, `OCCU`, `BURI`. No GEDCOM at all? List people in `collection.json` and it still works.
 
 ## Build
 
 ```bash
-python build.py sample.ged --title "The Kowalski-Nowak family" --by "Your name"
+python build.py sample
 ```
 
-Open `dist/index.html` in a browser to preview.
+Open `dist/index.html` in a browser to preview. You can also pass a single `.ged` file instead of a folder.
 
 | Option | Meaning |
 |---|---|
-| `gedcom` | Path to your `.ged` file (required) |
+| `source` | A collection folder, or a single `.ged` file (required) |
 | `--out DIR` | Output folder (default `dist`) |
-| `--title TEXT` | Title on the cover |
-| `--by TEXT` | "Gathered by ..." credit |
+| `--title TEXT` | Title on the cover (overrides `collection.json`) |
+| `--by TEXT` | "Gathered by ..." credit (overrides `collection.json`) |
 | `--ai` | Draft historical context with the Anthropic API |
 
-Photos referenced by the GEDCOM (`OBJE`/`FILE`, relative to the `.ged`) are copied into `dist/media/`. Living people (no death record, born under 100 years ago) are left out.
+The build also writes `dist/data.json`, the curated data behind the site.
+
+**Privacy rules:** living people (no death record, born under 100 years ago) are left out, along with any photo tagged to them. Files marked `"private": true` and people in `exclude` are left out too. Photos with no person attached are your call, so check them. Install Pillow to strip GPS and camera details from JPEGs; the build warns if it isn't installed.
 
 ### Optional: AI context
 
 ```bash
 pip install anthropic
 set ANTHROPIC_API_KEY=your-key        # Windows cmd; use export on macOS/Linux
-python build.py sample.ged --ai
+python build.py sample --ai
 ```
 
-Drafts are saved to `context.json` next to the `.ged` and labelled "AI-drafted, not yet reviewed" on the page. Read them, fix anything wrong, and set `"reviewed": true` to change the label.
+Drafts are saved to `context.json` in the collection folder and labelled "AI-drafted, not yet reviewed" on the page. Read them, fix anything wrong, and set `"reviewed": true` to change the label.
 
 ## Publish
 
@@ -77,10 +115,10 @@ The site appears at `https://<you>.github.io/family-story-a8f9x/`.
 
 ## Keep real family data private
 
-This repo uses only a fake sample. Put real GEDCOM files, photos and `context.json` in a `private/` folder, which is git-ignored:
+This repo uses only a fake sample. Put your real collection folder inside `private/`, which is git-ignored:
 
 ```bash
-python build.py private/mytree.ged --out dist
+python build.py private/my-family --out dist
 ```
 
 ## License

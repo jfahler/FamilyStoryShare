@@ -1,0 +1,17 @@
+{
+  "title": "The Kowalski-Nowak family",
+  "by": "Sam",
+  "people": [
+    {
+      "id": "M1",
+      "name": "Zofia Kowalski",
+      "events": [
+        {"type": "BIRT", "date": "1892", "place": "Kraków, Poland"},
+        {"type": "DEAT", "date": "1970", "place": "Kraków, Poland", "note": "Stayed in Kraków and wrote to Anna every month."}
+      ]
+    }
+  ],
+  "media": [
+    {"file": "photos/sunday-dinner-1952.svg", "caption": "Sunday dinner, 1952", "year": 1952}
+  ]
+}

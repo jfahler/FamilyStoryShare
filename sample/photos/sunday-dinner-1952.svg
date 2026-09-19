@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 400" width="500" height="400">
+<rect width="500" height="400" fill="#D9E3DE"/>
+<rect x="60" y="210" width="380" height="20" fill="#9FB5AC"/>
+<circle cx="140" cy="160" r="34" fill="#9FB5AC"/><circle cx="250" cy="150" r="34" fill="#9FB5AC"/><circle cx="360" cy="160" r="34" fill="#9FB5AC"/>
+<text x="250" y="350" text-anchor="middle" font-family="Georgia,serif" font-size="20" fill="#3C544F">[Fake group photo placeholder]</text>
+</svg>
