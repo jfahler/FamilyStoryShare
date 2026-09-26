@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Turn a curated family collection (GEDCOM + photos + documents + stories) into a
-private, tap-through family story site (static HTML). See README.md for the folder layout."""
+private, scrolling family story site (static HTML). See README.md for the folder layout."""
 import argparse, datetime, html, json, os, re, shutil, sys
 from pathlib import Path
 
@@ -305,6 +305,19 @@ def map_html(points):
             f"<ol class='route'>{items}</ol></section><script>window.POINTS={data}</script>")
 
 
+def toc_html(chapter_count, has_gallery, has_map):
+    """A sticky strip of jump links, one per section, so a scroll page still lets
+    someone skip to a chapter without scrolling past everything before it."""
+    items = [("cover", "Cover")] + [(f"c{i}", f"Chapter {i}") for i in range(1, chapter_count + 1)]
+    if has_gallery:
+        items.append(("gallery", "Photos and documents"))
+    if has_map:
+        items.append(("map", "The journey"))
+    items.append(("end", "End"))
+    links = "".join(f"<a href='#{i}' aria-label='{E(l)}'></a>" for i, l in items)
+    return f"<nav class='toc' id='toc' aria-label='Jump to a section'>{links}</nav>"
+
+
 CSS = """
 :root{--paper:#F3ECDF;--card:#FBF7EE;--ink:#2B2118;--mut:#6B5D4E;--acc:#8C3B28;--line:#DDD0B9}
 *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 system-ui,sans-serif}
@@ -328,32 +341,37 @@ padding:16px;background:rgba(20,15,10,.92);color:#F3ECDF}#lb[hidden]{display:non
 #lbx{position:absolute;top:8px;right:8px;width:48px;height:48px;font-size:28px;border:0;border-radius:24px;
 background:#F3ECDF;color:#2B2118;cursor:pointer}
 #mapbox{height:280px;border-radius:12px;border:1px solid var(--line)}.route{padding-left:18px}
-.btn{display:block;min-height:56px;line-height:56px;text-align:center;border-radius:14px;background:var(--acc);color:#FBF7EE;
-font-weight:600;font-size:17px;border:0;width:100%;cursor:pointer;padding:0}
-.js .slide{display:none;min-height:80vh}.js .slide.on{display:block}
-.bar{display:none;gap:6px;margin-bottom:12px}.js .bar{display:flex}.bar i{flex:1;height:4px;border-radius:2px;background:#CDBFA6}
-.bar i.on{background:var(--acc)}.nav{display:none;gap:10px;margin-top:20px}.js .nav{display:flex}
-.nav .back{width:56px;background:none;border:1px solid #CDBFA6;color:var(--ink)}
+html{scroll-behavior:smooth}
+.slide{padding:40px 0;border-bottom:1px solid var(--line);scroll-margin-top:56px}.slide:last-of-type{border-bottom:0}
+.toc{position:sticky;top:0;z-index:5;display:flex;gap:10px;overflow-x:auto;padding:14px 24px;
+background:rgba(243,236,223,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.toc a{flex:0 0 auto;width:10px;height:10px;border-radius:50%;background:#CDBFA6}
+.toc a:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.toc a.on{background:var(--acc);width:14px;height:14px}
+#progress{display:none;position:fixed;top:0;left:0;height:3px;background:var(--acc);z-index:6;width:0}
+.js #progress{display:block}
 """
 
 JS = """
 document.documentElement.classList.add('js');
-const S=[...document.querySelectorAll('.slide')],bar=document.querySelector('.bar'),lb=document.getElementById('lb');
-S.forEach(()=>bar.appendChild(document.createElement('i')));let n=0,map;
-function show(i){n=Math.max(0,Math.min(S.length-1,i));S.forEach((s,k)=>s.classList.toggle('on',k===n));
-[...bar.children].forEach((b,k)=>b.classList.toggle('on',k<=n));scrollTo(0,0);
-if(S[n].id==='map'&&window.L&&!map&&window.POINTS&&POINTS.length){map=L.map('mapbox');
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'\\u00a9 OpenStreetMap'}).addTo(map);
+const lb=document.getElementById('lb'),toc=document.getElementById('toc'),bar=document.getElementById('progress');
+let map;
+function loadMapIfNear(){const m=document.getElementById('map');
+if(m&&window.L&&!map&&window.POINTS&&POINTS.length&&m.getBoundingClientRect().top<innerHeight+400){
+map=L.map('mapbox');L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'\\u00a9 OpenStreetMap'}).addTo(map);
 const pts=POINTS.map(p=>[p[0],p[1]]);pts.forEach((p,k)=>L.marker(p).addTo(map).bindPopup(POINTS[k][2]));
 L.polyline(pts,{color:'#8C3B28',dashArray:'2 8'}).addTo(map);map.fitBounds(pts,{padding:[30,30]});}}
-document.getElementById('next').onclick=()=>show(n+1);document.getElementById('prev').onclick=()=>show(n-1);
+const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)
+toc.querySelectorAll('a').forEach(a=>a.classList.toggle('on',a.hash==='#'+e.target.id));});},
+{rootMargin:'-35% 0px -55% 0px'});
+document.querySelectorAll('.slide').forEach(s=>io.observe(s));
+function onScroll(){const h=document.documentElement,d=h.scrollHeight-h.clientHeight;
+bar.style.width=(d>0?h.scrollTop/d*100:0)+'%';loadMapIfNear();}
+addEventListener('scroll',onScroll,{passive:true});onScroll();
 document.addEventListener('click',e=>{const t=e.target.closest('.thumb');
 if(t){const im=lb.querySelector('img');im.src=t.dataset.full;im.alt=t.dataset.cap;lb.querySelector('p').textContent=t.dataset.cap;
 lb.hidden=false;document.getElementById('lbx').focus();}else if(!lb.hidden&&e.target.tagName!=='IMG')lb.hidden=true;});
-addEventListener('keydown',e=>{if(!lb.hidden){if(e.key==='Escape')lb.hidden=true;return}
-if(e.key==='ArrowRight')show(n+1);if(e.key==='ArrowLeft')show(n-1)});
-let x0;addEventListener('touchstart',e=>x0=e.touches[0].clientX);
-addEventListener('touchend',e=>{if(!lb.hidden)return;const d=e.changedTouches[0].clientX-x0;if(Math.abs(d)>60)show(n+(d<0?1:-1))});show(0);
+addEventListener('keydown',e=>{if(!lb.hidden&&e.key==='Escape')lb.hidden=true;});
 """
 
 
@@ -426,19 +444,21 @@ def main():
     span = [y for p in told for y in (p["born"], p["died"]) if y]
     years = f" · {min(span)}–{max(span)}" if span else ""
     credit = f" · gathered by {E(by)}" if by else ""
-    cover = (f"<section class='slide'><p class='eyebrow'>A family story · private link</p><h1>{E(title)}</h1>"
+    cover = (f"<section class='slide' id='cover'><p class='eyebrow'>A family story · private link</p><h1>{E(title)}</h1>"
              f"<p class='lede'>{len(told)} people{years}{credit}</p>"
-             f"<p class='lede'>Tap next to begin. No login needed.</p></section>")
-    end = ("<section class='slide'><h2>That's the story so far</h2>"
+             f"<p class='lede'>Scroll to begin. No login needed.</p></section>")
+    end = ("<section class='slide' id='end'><h2>That's the story so far</h2>"
            "<p class='lede'>Know more? Tell the person who shared this.</p></section>")
+    gallery = gallery_html(unattached)
+    story_map = map_html(points)
+    toc = toc_html(len(told), bool(gallery), bool(story_map))
     page = (f"<!doctype html><html lang='en'><head><meta charset='utf-8'>"
             f"<meta name='viewport' content='width=device-width,initial-scale=1'>"
             f"<meta name='robots' content='noindex, nofollow, noarchive'><title>{E(title)}</title>"
             f"<link rel='stylesheet' href='style.css'>"
-            f"<link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'></head><body><main>"
-            f"<div class='bar'></div>{cover}{''.join(chapters)}{gallery_html(unattached)}{map_html(points)}{end}"
-            f"<div class='nav'><button class='btn back' id='prev' aria-label='Previous'>&larr;</button>"
-            f"<button class='btn' id='next'>Next</button></div></main>"
+            f"<link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'></head><body>"
+            f"<div id='progress'></div>{toc}<main>"
+            f"{cover}{''.join(chapters)}{gallery}{story_map}{end}</main>"
             f"<div id='lb' hidden role='dialog' aria-label='Photo viewer'>"
             f"<button type='button' id='lbx' aria-label='Close'>&times;</button><img alt=''><p></p></div>"
             f"<script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>"

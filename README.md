@@ -2,7 +2,7 @@
 
 An open source tool to share family story information with a simple link and no login. Self-hosted or pushed to Cloudflare.
 
-Turn a GEDCOM file (from Ancestry, FamilySearch, Gramps...) into a private, tap-through family story site. It builds plain static files: no login, no database, marked `noindex`, easy to host anywhere.
+Turn a GEDCOM file (from Ancestry, FamilySearch, Gramps...) into a private, scrolling family story site. It builds plain static files: no login, no database, marked `noindex`, easy to host anywhere.
 
 Needs Python 3.9+. No packages are required. Optional: `Pillow` (shrinks photos and strips GPS/camera data) and `anthropic` (for `--ai`).
 
@@ -93,8 +93,10 @@ npx wrangler login
 Deploy (creates `https://<name>.pages.dev` on first run, re-run to update):
 
 ```bash
-npx wrangler pages deploy dist --project-name family-story-a8f9x
+npx wrangler pages deploy dist --project-name family-story-a8f9x --branch production
 ```
+
+Keep `--branch production` on every deploy. Any other branch name is published as a separate preview URL and the main address won't update.
 
 ### GitHub Pages
 
